@@ -7,6 +7,10 @@
     <title>BloomReach Bynder Extension Dialog</title>
 
     <style>
+      body {
+        margin: 0px;
+      }
+
       #bynder {
         height: 800px;
         width: 100%;
@@ -51,7 +55,7 @@
 
                 BynderCompactView.open({
                   container: document.getElementById('bynder'),
-                  portal: {url: props.defaultDomain || '', editable: props.defaultDomain ? false : true},
+                  portal: {url: defaultDomain || '', editable: defaultDomain ? false : true},
                   language: props.language || "en_US",
                   mode: props.mode || "SingleSelect",
                   assetTypes: props.assetTypes || ['image'],

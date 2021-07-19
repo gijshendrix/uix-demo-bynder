@@ -7,6 +7,10 @@
     <title>GraphCMS Bynder UI Extension</title>
 
     <style>
+      body {
+        margin: 0px;
+      }
+
       #open-dialog-button {
         display:none;
         margin: 0 0 8px 0px;
@@ -46,10 +50,6 @@
       .imagediv_editing:hover {
         opacity: 0.5;
       }
-
-      #bumper {
-        height: 5px;
-      }
     </style>
 
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:500" />
@@ -78,6 +78,15 @@
           try {
             window.GCUIX.init({
               declaration,
+              onProps: function(newProps) {
+                // newProps has the same object shape the initial props
+                props = newProps;
+                console.log("props updated");
+                console.log(props);
+
+                updatePreview();
+                updateDialogButtonText();
+              }
             }).then((initialState) => {
               props = initialState.props;
               if (initialState.status === "ok") {
@@ -87,8 +96,6 @@
                 }                
 
                 initDialogButton();
-                updatePreview(props.value.length ? props.value : []);
-                updateDialogButtonText( props.value.length ? true : false );
               }
             });
           } catch(error) {
@@ -104,7 +111,7 @@
             disableOverlayClick: false,
             maxWidth: '85%',
             ariaLabel: 'Bynder',
-            defaultdomain: props.extension.config.BY_defaultdomain,
+            defaultDomain: props.extension.config.BY_defaultdomain,
           };
 
           buttonElement.style.display = 'block';
@@ -112,10 +119,11 @@
           updateDialogButtonText();
         }        
 
-        function updateDialogButtonText(replace = false) {
+        function updateDialogButtonText() {
+          console.log("updateDialogButtonText");
           const buttonElement = document.getElementById('open-dialog-button');
           const img = '<img src="./images/bynder_logo_cornflower.png" />';
-          if (replace) {
+          if (props.value && props.value.length) {
             buttonElement.innerHTML = img + ' Replace asset';
             return;
           }
@@ -128,19 +136,19 @@
             if (response === undefined) return;
             const assets = response.length ? JSON.parse(response) : [];
             await props.onChange(assets);
-
-            await updatePreview(assets);
           } catch (error) {
             console.error('Error opening dialog: ', error.code, error.message);
           }
         }
         
-        async function updatePreview(assets) {
-          console.log (assets);
+        async function updatePreview() {
+          console.log("updatePreview");
+          const assets = (props.value && props.value.length) ? props.value : [];
+          console.log(assets);
           var container = document.getElementById('assets');
+          console.log(container);
           container.innerHTML = '';
           addThumbnails(container, assets);
-          updateDialogButtonText( assets.length ? true : false );
         }
 
         function addThumbnails(container, assets) {
@@ -166,7 +174,6 @@
           div.classList.add('imagediv_editing');
           div.addEventListener('click', async () => {
             await removeAsset(asset);
-            container.removeChild(div);
           });
 
           div.appendChild(img);
@@ -176,7 +183,6 @@
         async function removeAsset({ databaseId }) {
           const updatedAssets = props.value.filter(asset => databaseId !== asset.databaseId);
           await props.onChange(updatedAssets);
-          updateDialogButtonText( updatedAssets.length ? true : false );
         }        
 
         document.addEventListener('DOMContentLoaded', init);
@@ -188,6 +194,5 @@
   <body>
     <div id="assets"></div>
     <button id="open-dialog-button">Select Asset</button>
-    <div id="bumper"></div>
   </body>
 </html>
