@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>GraphCMS Bynder UI Extension</title>
+
+    <style>
+      #open-dialog-button {
+        display:none;
+        margin: 0 0 8px 0px;
+        height: 32px;
+        min-width: 64px;
+        padding: 5px 16px 5px 16px;
+        background-color: transparent;        
+        border-color: transparent;
+        border-radius: 3px;
+        font-family: 'Inter', Arial, sans-serif; 
+        font-weight: 500;
+        font-size: 13px;
+        color: rgb(102, 99, 253);
+        vertical-align: baseline;
+      }
+      #open-dialog-button:hover {
+        background-color: rgb(0,0,0,0.1);
+      }
+      #open-dialog-button > img {
+        height: 13px;
+        vertical-align: baseline;
+        margin-right: 3px;
+      }
+
+      .imagediv {
+        height: 80px;
+        border: 1px;
+        border-color: grey;
+        border-radius: 1px;
+        box-sizing: border-box;
+        box-shadow: 1px 1px 2px rgb(150, 150, 150);
+        margin-bottom: 10px;
+      }
+      .imagediv > img {
+        height: 80px; 
+      }
+      .imagediv_editing:hover {
+        opacity: 0.5;
+      }
+
+      #bumper {
+        height: 5px;
+      }
+    </style>
+
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Inter:500" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/@graphcms/zoid@9.0.64-alpha.1/lib/zoid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@graphcms/uix-sdk@0.1.2/dist/gcuix.umd.production.min.js"></script>    
+    <script>
+      ((props) => {
+
+        const declaration = {
+          config: {
+            BY_defaultdomain: {
+              type: 'string',
+              displayName: 'Default domain',
+              required: true,
+            },
+          },
+          extensionType: "field",
+          fieldType: "JSON",
+          name: "Bynder",
+          description: "",
+          features: ["FieldRenderer"],
+        };
+
+        async function init() {
+          try {
+            window.GCUIX.init({
+              declaration,
+            }).then((initialState) => {
+              props = initialState.props;
+              if (initialState.status === "ok") {
+
+                if (props.isTableCell) {
+                  return;
+                }                
+
+                initDialogButton();
+                updatePreview(props.value.length ? props.value : []);
+                updateDialogButtonText( props.value.length ? true : false );
+              }
+            });
+          } catch(error) {
+            console.error('Failed to init extension:', error.message);
+            console.error('- error code:', error.code);
+          }
+        }
+
+        function initDialogButton() {
+          const buttonElement = document.getElementById('open-dialog-button');
+          buttonElement.display = 'inline';
+          const options = {
+            disableOverlayClick: false,
+            maxWidth: '85%',
+            ariaLabel: 'Bynder',
+            defaultdomain: props.extension.config.BY_defaultdomain,
+          };
+
+          buttonElement.style.display = 'block';
+          buttonElement.addEventListener('click', () => showDialog(options));
+          updateDialogButtonText();
+        }        
+
+        function updateDialogButtonText(replace = false) {
+          const buttonElement = document.getElementById('open-dialog-button');
+          const img = '<img src="./images/bynder_logo_cornflower.png" />';
+          if (replace) {
+            buttonElement.innerHTML = img + ' Replace asset';
+            return;
+          }
+          buttonElement.innerHTML = img + ' Select asset';
+        }
+
+        async function showDialog(options) {
+          try {
+            const response = await props.openDialog('./dialog.html', options);
+            if (response === undefined) return;
+            const assets = response.length ? JSON.parse(response) : [];
+            await props.onChange(assets);
+
+            await updatePreview(assets);
+          } catch (error) {
+            console.error('Error opening dialog: ', error.code, error.message);
+          }
+        }
+        
+        async function updatePreview(assets) {
+          console.log (assets);
+          var container = document.getElementById('assets');
+          container.innerHTML = '';
+          addThumbnails(container, assets);
+          updateDialogButtonText( assets.length ? true : false );
+        }
+
+        function addThumbnails(container, assets) {
+          assets.map(makeThumbnail.bind(null, container))
+            .forEach(div => { container.appendChild(div); });
+        }
+
+        function makeThumbnail(container, asset) {
+          const div = document.createElement('div');
+          div.className = 'imagediv';          
+          const img = document.createElement('img');
+          img.className = 'image';
+
+          switch (asset.type.toLowerCase()) {
+            case 'image':
+            case 'video':
+              img.src = asset.files.thumbnail.url.length ? asset.files.thumbnail.url : './images/no-preview-available.png';
+              break;
+            default:
+              img.src = './images/no-preview-available.png';
+          }
+
+          div.classList.add('imagediv_editing');
+          div.addEventListener('click', async () => {
+            await removeAsset(asset);
+            container.removeChild(div);
+          });
+
+          div.appendChild(img);
+          return div;
+        }
+
+        async function removeAsset({ databaseId }) {
+          const updatedAssets = props.value.filter(asset => databaseId !== asset.databaseId);
+          await props.onChange(updatedAssets);
+          updateDialogButtonText( updatedAssets.length ? true : false );
+        }        
+
+        document.addEventListener('DOMContentLoaded', init);
+        
+      })();
+      
+    </script>
+  </head>
+  <body>
+    <div id="assets"></div>
+    <button id="open-dialog-button">Select Asset</button>
+    <div id="bumper"></div>
+  </body>
+</html>
