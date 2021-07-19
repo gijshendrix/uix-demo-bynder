@@ -81,9 +81,6 @@
               onProps: function(newProps) {
                 // newProps has the same object shape the initial props
                 props = newProps;
-                console.log("props updated");
-                console.log(props);
-
                 updatePreview();
                 updateDialogButtonText();
               }
@@ -120,7 +117,6 @@
         }        
 
         function updateDialogButtonText() {
-          console.log("updateDialogButtonText");
           const buttonElement = document.getElementById('open-dialog-button');
           const img = '<img src="./images/bynder_logo_cornflower.png" />';
           if (props.value && props.value.length) {
@@ -142,11 +138,8 @@
         }
         
         async function updatePreview() {
-          console.log("updatePreview");
           const assets = (props.value && props.value.length) ? props.value : [];
-          console.log(assets);
           var container = document.getElementById('assets');
-          console.log(container);
           container.innerHTML = '';
           addThumbnails(container, assets);
         }
