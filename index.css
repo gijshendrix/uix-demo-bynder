@@ -4,13 +4,17 @@ body {
 
 #assets {
   min-height: 1px;
-  margin-bottom: 15px;
+}
+
+.assets-table {
+  display: flex;
 }
 
 #open-dialog-button {
+  margin-top: 15px;
   cursor: pointer;
   user-select: none;
-  display: block;
+  display: none;
   height: 32px;
   line-height: 16px;
   min-width: 64px;
@@ -35,12 +39,26 @@ body {
   display: flex;
   position: relative;
 }
-.previewdiv > img, video {
+.previewelt {
   cursor: pointer;
-  width: 300px;
+  width: 400px;
   border-radius: 2px; 
   display: inline-block;
 }
+
+.previewdiv-table {
+  display: flex;
+  position: relative;  
+  height: 59px;
+  margin-right: 10px;
+}
+.previewelt-table {
+  cursor: pointer;
+  object-fit: cover;
+  height: 100%;
+  display: inline-block;  
+}
+
 .overlay-text {
   margin: 0px;
   position: absolute;

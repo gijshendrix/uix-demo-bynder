@@ -35,11 +35,22 @@
         };
 
         function deserialize(value) {
-          return (value && JSON.parse(value)) || [];
+          try {
+            return (value && JSON.parse(value)) || [];
+          } catch (error) {
+            console.log(error)
+            console.log("Invalid JSON: " + value);
+            return null;
+          }
         }        
 
         function serialize(value) {
-          return value.length ? JSON.stringify(value) : '';
+          try {
+            return value.length ? JSON.stringify(value) : '';
+          } catch (error) {
+            console.log(error);
+            return '';
+          }
         }
 
         document.addEventListener('DOMContentLoaded', async () => {

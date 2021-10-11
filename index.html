@@ -20,7 +20,7 @@
               type: 'string',
               displayName: 'Default domain',
               description: 'Your Bynder portal url.',
-              defaultValue: 'test',
+              defaultValue: '',
               required: true,
             },
             BR_DEFAULT_DOMAIN_EDITABLE: {
@@ -46,12 +46,23 @@
         };
 
         function deserialize(value) {
-          return (value && JSON.parse(value)) || [];
+          try {
+            return (value && JSON.parse(value)) || [];
+          } catch (error) {
+            console.log(error)
+            console.log("Invalid JSON: " + value);
+            return null;
+          }
         }        
-        
+
         function serialize(value) {
-          return value.length ? JSON.stringify(value) : '';
-        }        
+          try {
+            return value.length ? JSON.stringify(value) : '';
+          } catch (error) {
+            console.log(error);
+            return '';
+          }
+        }      
 
         async function init() {
           try {
@@ -84,6 +95,7 @@
 
         function initDialogButton() {
           const buttonElement = document.getElementById('open-dialog-button');
+          buttonElement.style.display = 'block';
 
           //Convert BR_DEFAULT_DOMAIN_EDITABLE to boolean if it is a string
           let defaultDomainEditableBool = false;
@@ -128,6 +140,7 @@
         async function updatePreview() {
           const assets = getAssets();
           var container = document.getElementById('assets');
+          if (props.isTableCell) container.classList.add('assets-table');
           container.innerHTML = '';
           addThumbnails(container, assets);
           updateDialogButton(assets.length);
@@ -140,10 +153,11 @@
 
         function makeThumbnail(container, asset) {
           const previewdiv = document.createElement('div');
-          previewdiv.className = 'previewdiv';          
+          if (props.isTableCell) previewdiv.classList.add('previewdiv-table');           
+          else previewdiv.classList.add('previewdiv');           
 
           const text = document.createElement('p');
-          text.className = 'overlay-text';
+          text.classList.add('overlay-text');
           text.innerText = asset.type.toLowerCase();
           previewdiv.appendChild(text);
 
@@ -152,13 +166,16 @@
             case 'audio':
             case 'document':
               const img = document.createElement('img');
+              if (props.isTableCell) img.classList.add('previewelt-table');
+              else img.classList.add('previewelt');
               img.src = asset.files.webImage.url.length ? asset.files.webImage.url : './images/no-preview-available.png';
               img.addEventListener('click', () => window.open(asset.url, '_blank').focus());
               previewdiv.appendChild(img);
               break;
             case 'video':
-              if (asset.previewUrls.length) {
+              if (asset.previewUrls.length && !props.isTableCell) {
                 const video = document.createElement('video');
+                video.classList.add('previewelt')
                 video.controls = true;
                 const source = document.createElement('source'); 
                 source.type = 'video/webm';
@@ -169,19 +186,30 @@
                 break;
               }
               const videoimg = document.createElement('img');
+              if (props.isTableCell) videoimg.classList.add('previewelt-table');
+              else videoimg.classList.add('previewelt');
               videoimg.src = asset.files.webImage.url.length ? asset.files.webImage.url : './images/no-preview-available.png';
               videoimg.addEventListener('click', () => window.open(asset.url, '_blank').focus());
               previewdiv.appendChild(videoimg);
               break;
+            default:
+              const defaultimg = document.createElement('img');
+              if (props.isTableCell) defaultimg.classList.add('previewelt-table');
+              else defaultimg.classList.add('previewelt');
+              defaultimg.src = './images/no-preview-available.png';
+              defaultimg.addEventListener('click', () => window.open(asset.url, '_blank').focus());
+              previewdiv.appendChild(defaultimg);               
           }
 
-          const button = document.createElement('button');
-          button.className = 'remove-asset-button';
-          button.addEventListener('click', async () => {
-            await removeAsset(asset);
-          });
-          button.innerText = 'X';
-          previewdiv.appendChild(button);
+          if (!props.isTableCell) {
+            const button = document.createElement('button');
+            button.className = 'remove-asset-button';
+            button.addEventListener('click', async () => {
+              await removeAsset(asset);
+            });
+            button.innerText = 'X';
+            previewdiv.appendChild(button);
+          }
 
           return previewdiv;
         }

@@ -10,6 +10,14 @@ Deploy the code of this extension to Vercel or Netlify, or run locally (for exam
 
 To try out the extension first, you can get started with our hosted example. This should not be used for production use cases, as we don't guarantee the availability of this example: `https://gijshendrix.github.io/uix-demo-bynder/`
 
+This extension has the following parameters:
+
+| Name          | Type    | Description  | Example |
+| --- | --- | --- | --- |
+| Default Domain | String | Your Bynder portal url | `https://<your-domain>.bynder.com/` |
+| Default domain editable | Boolean | Should users be able to change the default domain? | |
+| Available asset types | String | Determines which asset types your users will be able to select.  | `["image", "audio", "video", "document"]` |
+
 Follow the full guide on [working with GraphCMS UI extensions](https://graphcms.com/guides/working-with-ui-extensions).
 
 ### Download Manually
